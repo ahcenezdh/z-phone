@@ -35,7 +35,7 @@ RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function()
 end)
 
 function GetStreetName()
-    local pos = GetEntityCoords(PlayerPedId())
+    local pos = GetEntityCoords(cache.ped)
     local s1, s2 = GetStreetNameAtCoord(pos.x, pos.y, pos.z)
     local street1 = GetStreetNameFromHashKey(s1)
     local street2 = GetStreetNameFromHashKey(s2)
@@ -73,8 +73,8 @@ local function DisableDisplayControlActions()
 end
 
 function OpenPhone()
-    local hasWeapon, weaponHash = GetCurrentPedWeapon(PlayerPedId(), true)
-    if weaponHash ~= GetHashKey("WEAPON_UNARMED") then
+    local hasWeapon, weaponHash = GetCurrentPedWeapon(cache.ped, true)
+    if weaponHash ~= joaat("WEAPON_UNARMED") then
         QBCore.Functions.Notify("Cannot open radio!", 'error')
         return
     end
@@ -121,7 +121,7 @@ RegisterCommand('phone', function()
             QBCore.Functions.Notify('Action not available at the moment..', 'error')
         end
     end
-end)
+end, false)
 
 RegisterKeyMapping('phone', 'Open Phone', 'keyboard', Config.OpenPhone)
 
@@ -129,7 +129,7 @@ RegisterNUICallback('close', function(_, cb)
     if not PhoneData.CallData.InCall then
         DoPhoneAnimation('cellphone_text_out')
         SetTimeout(400, function()
-            StopAnimTask(PlayerPedId(), PhoneData.AnimationData.lib, PhoneData.AnimationData.anim, 2.5)
+            StopAnimTask(cache.ped, PhoneData.AnimationData.lib, PhoneData.AnimationData.anim, 2.5)
             deletePhone()
             PhoneData.AnimationData.lib = nil
             PhoneData.AnimationData.anim = nil
@@ -142,8 +142,8 @@ RegisterNUICallback('close', function(_, cb)
     SetNuiFocus(false, false)
     SetNuiFocusKeepInput(false)
 
-    local position = GetEntityCoords(PlayerPedId(), false)
-	local object = GetClosestObjectOfType(position.x, position.y, position.z, 5.0, GetHashKey("prop_amb_phone"), false, false, false)
+    local position = GetEntityCoords(cache.ped, false)
+	local object = GetClosestObjectOfType(position.x, position.y, position.z, 5.0, joaat("prop_amb_phone"), false, false, false)
     if object ~= 0 then
 		DeleteObject(object)
 	end

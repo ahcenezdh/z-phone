@@ -1,4 +1,5 @@
 local QBCore = exports['qb-core']:GetCoreObject()
+local screenshot = exports['screenshot-basic']
 local frontCam = false
 
 local function SaveToInternalGallery()
@@ -12,17 +13,13 @@ local function CellFrontCamActivate(activate)
 end
 
 RegisterNUICallback('TakePhoto', function(_, cb)
-    -- SendNUIMessage({
-    --     event = 'z-phone',
-    --     isOpen = false,
-    -- })
-    
     SetNuiFocus(false, false)
     CreateMobilePhone(1)
     CellCamActivate(true, true)
     local takePhoto = true
+
     while takePhoto do
-        if IsControlJustPressed(1, 27) then -- Toogle Mode
+        if IsControlJustPressed(1, 27) then -- Toggle Mode
             frontCam = not frontCam
             CellFrontCamActivate(frontCam)
         elseif IsControlJustPressed(1, 177) then -- CANCEL
@@ -30,20 +27,28 @@ RegisterNUICallback('TakePhoto', function(_, cb)
             CellCamActivate(false, false)
             cb(nil)
             break
-        elseif IsControlJustPressed(1, 176) then -- TAKE.. PIC
-            lib.callback('z-phone:server:GetWebhook', false, function(hook)
+        elseif IsControlJustPressed(1, 176) then -- TAKE PHOTO
+            local hook = lib.callback.await('z-phone:server:GetWebhook', false)
             if not hook then
-                    QBCore.Functions.Notify('Camera not setup', 'error')
-                    return
-                end
-                exports['screenshot-basic']:requestScreenshotUpload(tostring(hook), 'files[]', function(data)
-                    SaveToInternalGallery()
-                    local image = json.decode(data)
-                    DestroyMobilePhone()
-                    CellCamActivate(false, false)
+                QBCore.Functions.Notify('Camera not setup', 'error')
+                DestroyMobilePhone()
+                CellCamActivate(false, false)
+                cb(nil)
+                break
+            end
+
+            screenshot:requestScreenshotUpload(tostring(hook), 'files[]', function(data)
+                SaveToInternalGallery()
+                local image = json.decode(data)
+                if not image or not image.attachments or not image.attachments[1] or not image.attachments[1].proxy_url then
+                    --TODO: more debug here 
+                    cb(nil)
+                else
                     cb(image.attachments[1].proxy_url)
-                    takePhoto = false
-                end)
+                end
+                DestroyMobilePhone()
+                CellCamActivate(false, false)
+                takePhoto = false
             end)
         end
         HideHudComponentThisFrame(7)
@@ -55,8 +60,9 @@ RegisterNUICallback('TakePhoto', function(_, cb)
         EnableAllControlActions(0)
         Wait(0)
     end
+
     Wait(1000)
-    -- OpenPhone()
+    --OpenPhone()
     SetNuiFocus(true, true)
     if not PhoneData.CallData.InCall then
         DoPhoneAnimation('cellphone_text_in')

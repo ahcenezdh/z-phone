@@ -1,7 +1,10 @@
 RegisterNUICallback('get-ads', function(_, cb)
-    lib.callback('z-phone:server:GetAds', false, function(ads)
-        cb(ads)
-    end)
+    local ads = lib.callback.await("z-phone:server:GetAds", false)
+    if not ads then
+        --TODO: debug here
+        return 
+    end
+    cb(ads)
 end)
 
 RegisterNUICallback('send-ads', function(body, cb)
@@ -25,10 +28,18 @@ RegisterNUICallback('send-ads', function(body, cb)
         return
     end
 
-    lib.callback('z-phone:server:SendAds', false, function(isOk)
-        lib.callback('z-phone:server:GetAds', false, function(ads)
-            TriggerServerEvent("z-phone:server:usage-internet-data", Config.App.Ads.Name, Config.App.InetMax.InetMaxUsage.AdsPost)
-            cb(ads)
-        end)
-    end, body)
+    local sendAds = lib.callback.await("z-phone:server:SendAds", false, body)
+    if not sendAds then
+        -- TODO: debug here
+        return
+    end
+
+    local ads = lib.callback.await("z-phone:server:GetAds", false)
+    if not ads then
+        -- TODO: debug here
+        return
+    end 
+
+    TriggerServerEvent("z-phone:server:usage-internet-data", Config.App.Ads.Name, Config.App.InetMax.InetMaxUsage.AdsPost)
+    cb(ads)
 end)

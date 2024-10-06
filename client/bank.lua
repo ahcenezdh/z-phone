@@ -1,13 +1,19 @@
 RegisterNUICallback('get-bank', function(_, cb)
-    lib.callback('z-phone:server:GetBank', false, function(bank)
-        cb(bank)
-    end)
+    local getBank = lib.callback.await('z-phone:server:GetBank', false)
+    if not getBank then
+        --TODO: debug here
+        return
+    end
+    cb(getBank)
 end)
 
 RegisterNUICallback('pay-invoice', function(body, cb)
-    lib.callback('z-phone:server:PayInvoice', false, function(isOk)
-        cb(isOk)
-    end, body)
+    local payInvoice = lib.callback.await('z-phone:server:PayInvoice', false, body)
+    if not payInvoice then
+        --TODO: debug here
+        return
+    end
+    cb(payInvoice)
 end)
 
 RegisterNUICallback('transfer-check', function(body, cb)
@@ -30,11 +36,15 @@ RegisterNUICallback('transfer-check', function(body, cb)
         cb(false)
         return
     end
-    
-    lib.callback('z-phone:server:TransferCheck', false, function(result)
-        TriggerServerEvent("z-phone:server:usage-internet-data", Config.App.Wallet.Name, Config.App.InetMax.InetMaxUsage.BankCheckTransferReceiver)
-        cb(result)
-    end, body)
+
+    local transferCheck = lib.callback.await('z-phone:server:TransferCheck', false, body)
+    if not transferCheck then
+        --TODO: debug here
+        return
+    end
+
+    TriggerServerEvent('z-phone:server:usage-internet-data', Config.App.Wallet.Name, Config.App.InetMax.InetMaxUsage.BankCheckTransferReceiver)
+    cb(transferCheck)
 end)
 
 RegisterNUICallback('transfer', function(body, cb)
@@ -58,8 +68,12 @@ RegisterNUICallback('transfer', function(body, cb)
         return
     end
 
-    lib.callback('z-phone:server:Transfer', false, function(isOk)
-        TriggerServerEvent("z-phone:server:usage-internet-data", Config.App.Wallet.Name, Config.App.InetMax.InetMaxUsage.BankTransfer)
-        cb(isOk)
-    end, body)
+    local transfer = lib.callback.await('z-phone:server:Transfer', false, body)
+    if not transfer then
+        --TODO: debug here
+        return
+    end
+
+    TriggerServerEvent("z-phone:server:usage-internet-data", Config.App.Wallet.Name, Config.App.InetMax.InetMaxUsage.BankTransfer)
+    cb(transfer)
 end)

@@ -30,9 +30,8 @@ end)
 
 RegisterNUICallback('share-contact', function(body, cb)
     local closestPlayer, distance = QBCore.Functions.GetClosestPlayer()
-    local ped = PlayerPedId()
 
-    if not (distance ~= -1 and distance < 2 and GetEntitySpeed(ped) < 5.0 and not QBCore.Functions.GetPlayerData().metadata.ishandcuffed and not IsPedRagdoll(ped)) then
+    if not (distance ~= -1 and distance < 2 and GetEntitySpeed(cache.ped) < 5.0 and not QBCore.Functions.GetPlayerData().metadata.ishandcuffed and not IsPedRagdoll(cache.ped)) then
         TriggerEvent("z-phone:client:sendNotifInternal", {
             type = "Notification",
             from = "Contact",

@@ -38,75 +38,83 @@ RegisterNUICallback('start-call', function(body, cb)
     body.call_id = callId
     body.is_anonim = Profile.is_anonim
 
-    lib.callback('z-phone:server:StartCall', false, function(res)
-        if not res.is_valid then
-            TriggerEvent("z-phone:client:sendNotifInternal", {
-                type = "Notification",
-                from = "Phone",
-                message = res.message
-            })
-            cb(false)
-            return
-        end
-        
-        PhoneData.CallData.InCall = true
-        if PhoneData.isOpen then
-            DoPhoneAnimation('cellphone_text_to_call')
-        else
-            DoPhoneAnimation('cellphone_call_listen_base')
-        end
+    local startCall = lib.callback.await('z-phone:server:StartCall', false, body)
+    
+    if not startCall.is_valid then
+        TriggerEvent("z-phone:client:sendNotifInternal", {
+            type = "Notification",
+            from = "Phone",
+            message = startCall.message
+        })
+        cb(false)
+        return
+    end
+    
+    PhoneData.CallData.InCall = true
+    if PhoneData.isOpen then
+        DoPhoneAnimation('cellphone_text_to_call')
+    else
+        DoPhoneAnimation('cellphone_call_listen_base')
+    end
 
-        PhoneData.CallData.CallId = callId
-        cb(res)
+    PhoneData.CallData.CallId = callId
+    cb(startCall)
 
-        local RepeatCount = 0
-        for _ = 1, Config.CallRepeats + 1, 1 do
-            if not PhoneData.CallData.AnsweredCall then
-                if RepeatCount + 1 ~= Config.CallRepeats + 1 then
-                    if PhoneData.CallData.InCall then
-                        RepeatCount = RepeatCount + 1
-                        TriggerServerEvent('InteractSound_SV:PlayOnSource', 'zpcall', 0.2)
-                    else
-                        break
-                    end
-                    Wait(Config.RepeatTimeout)
+    local RepeatCount = 0
+    for _ = 1, Config.CallRepeats + 1, 1 do
+        if not PhoneData.CallData.AnsweredCall then
+            if RepeatCount + 1 ~= Config.CallRepeats + 1 then
+                if PhoneData.CallData.InCall then
+                    RepeatCount = RepeatCount + 1
+                    TriggerServerEvent('InteractSound_SV:PlayOnSource', 'zpcall', 0.2)
                 else
-                    PhoneData.CallData.CallId = nil
-                    PhoneData.CallData.InCall = false
-
-                    TriggerEvent("z-phone:client:sendNotifInternal", {
-                        type = "Notification",
-                        from = "Phone",
-                        message = "Call not answered"
-                    })
-                    cb(false)
-                    
-                    lib.callback('z-phone:server:CancelCall', false, function(isOk)
-                        cb(isOk)
-                    end, { to_source = res.to_source })
                     break
                 end
+                Wait(Config.RepeatTimeout)
+            else
+                PhoneData.CallData.CallId = nil
+                PhoneData.CallData.InCall = false
+
+                TriggerEvent("z-phone:client:sendNotifInternal", {
+                    type = "Notification",
+                    from = "Phone",
+                    message = "Call not answered"
+                })
+                cb(false)
+                
+                local cancelCall = lib.callback.await('z-phone:server:CancelCall', false, { to_source = startCall.to_source })
+                cb(cancelCall)
+                break
             end
         end
-    end, body)
+    end
 end)
 
 RegisterNUICallback('cancel-call', function(body, cb)
-    lib.callback('z-phone:server:CancelCall', false, function(isOk)
-        cb(isOk)
-    end, body)
+    local cancelCall = lib.callback.await('z-phone:server:CancelCall', false, body)
+    if not cancelCall then
+        --TODO: debug here
+        return
+    end
+    cb(cancelCall)
 end)
 
 RegisterNUICallback('decline-call', function(body, cb)
-    lib.callback('z-phone:server:DeclineCall', false, function(isOk)
-        cb(isOk)
-    end, body)
+    local declineCall = lib.callback.await('z-phone:server:DeclineCall', false, body)
+    if not declineCall then
+        --TODO: debug here
+        return
+    end
+    cb(declineCall)
 end)
 
 RegisterNUICallback('end-call', function(body, cb)
-    lib.callback('z-phone:server:EndCall', false, function(isOk)
-        cb(isOk)
-    end, body)
+    local endCall = lib.callback.await('z-phone:server:EndCall', false, body)
+    if not endCall then
+        --TODO: debug here
+        return
+    end
+    cb(endCall)
 end)
 
 RegisterNUICallback('accept-call', function(body, cb)
@@ -117,13 +125,19 @@ RegisterNUICallback('accept-call', function(body, cb)
     end
 
     PhoneData.CallData.InCall = true
-    lib.callback('z-phone:server:AcceptCall', false, function(isOk)
-        cb(isOk)
-    end, body)
+    local acceptCall = lib.callback.await('z-phone:server:AcceptCall', false, body)
+    if not acceptCall then
+        --TODO: debug here
+        return
+    end
+    cb(acceptCall)
 end)
 
 RegisterNUICallback('get-call-histories', function(_, cb)
-    lib.callback('z-phone:server:GetCallHistories', false, function(histories)
-        cb(histories)
-    end)
+    local histories = lib.callback.await('z-phone:server:GetCallHistories', false)
+    if not histories then
+        --TODO: debug here
+        return
+    end
+    cb(histories)
 end)
