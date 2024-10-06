@@ -1,19 +1,28 @@
 RegisterNUICallback('loops-login', function(body, cb)
-    lib.callback('z-phone:server:LoopsLogin', false, function(res)
-        cb(res)
-    end, body)
+    local res = lib.callback.await('z-phone:server:LoopsLogin', false, body)
+    if not res then
+        --TODO: debug here
+        return
+    end
+    cb(res)
 end)
 
 RegisterNUICallback('loops-signup', function(body, cb)
-    lib.callback('z-phone:server:LoopsSignup', false, function(res)
-        cb(res)
-    end, body)
+    local res = lib.callback.await('z-phone:server:LoopsSignup', false, body)
+    if not res then
+        --TODO: debug here
+        return
+    end
+    cb(res)
 end)
 
 RegisterNUICallback('get-tweets', function(_, cb)
-    lib.callback('z-phone:server:GetTweets', false, function(tweets)
-        cb(tweets)
-    end)
+    local tweets = lib.callback.await('z-phone:server:GetTweets', false)
+    if not tweets then
+        --TODO: debug here
+        return
+    end
+    cb(tweets)
 end)
 
 RegisterNUICallback('send-tweet', function(body, cb)
@@ -37,18 +46,27 @@ RegisterNUICallback('send-tweet', function(body, cb)
         return
     end
 
-    lib.callback('z-phone:server:SendTweet', false, function(isOk)
-        TriggerServerEvent("z-phone:server:usage-internet-data", Config.App.Loops.Name, Config.App.InetMax.InetMaxUsage.LoopsPostTweet)
-        lib.callback('z-phone:server:GetTweets', false, function(tweets)
-            cb(tweets)
-        end)
-    end, body)
+    local isOk = lib.callback.await('z-phone:server:SendTweet', false, body)
+    if not isOk then
+        --TODO: debug here
+        return
+    end
+    TriggerServerEvent("z-phone:server:usage-internet-data", Config.App.Loops.Name, Config.App.InetMax.InetMaxUsage.LoopsPostTweet)
+    local tweets = lib.callback.await('z-phone:server:GetTweets', false)
+    if not tweets then
+        --TODO: debug here
+        return
+    end
+    cb(tweets)
 end)
 
 RegisterNUICallback('get-tweet-comments', function(body, cb)
-    lib.callback('z-phone:server:GetComments', false, function(comments)
-        cb(comments)
-    end, body)
+    local comments = lib.callback.await('z-phone:server:GetComments', false, body)
+    if not comments then
+        --TODO: debug here
+        return
+    end
+    cb(comments)
 end)
 
 RegisterNUICallback('send-tweet-comments', function(body, cb)
@@ -72,26 +90,38 @@ RegisterNUICallback('send-tweet-comments', function(body, cb)
         return
     end
 
-    lib.callback('z-phone:server:SendTweetComment', false, function(isOk)
-        TriggerServerEvent("z-phone:server:usage-internet-data", Config.App.Loops.Name, Config.App.InetMax.InetMaxUsage.LoopsPostComment)
-        cb(isOk)
-    end, body)
+    local isOk = lib.callback.await('z-phone:server:SendTweetComment', false, body)
+    if not isOk then
+        --TODO: debug here
+        return
+    end
+    TriggerServerEvent("z-phone:server:usage-internet-data", Config.App.Loops.Name, Config.App.InetMax.InetMaxUsage.LoopsPostComment)
+    cb(isOk)
 end)
 
 RegisterNUICallback('update-loops-profile', function(body, cb)
-    lib.callback('z-phone:server:UpdateLoopsProfile', false, function(profile)
-        cb(profile)
-    end, body)
+    local profile = lib.callback.await('z-phone:server:UpdateLoopsProfile', false, body)
+    if not profile then
+        --TODO: debug here
+        return
+    end
+    cb(profile)
 end)
 
 RegisterNUICallback('get-loops-profile', function(body, cb)
-    lib.callback('z-phone:server:GetLoopsProfile', false, function(profile)
-        cb(profile)
-    end, body)
+    local profile = lib.callback.await('z-phone:server:GetLoopsProfile', false, body)
+    if not profile then
+        --TODO: debug here
+        return
+    end
+    cb(profile)
 end)
 
 RegisterNUICallback('loops-logout', function(_, cb)
-    lib.callback('z-phone:server:UpdateLoopsLogout', false, function(isOk)
-        cb(isOk)
-    end)
+    local isOk = lib.callback.await('z-phone:server:UpdateLoopsLogout', false)
+    if not isOk then
+        --TODO: debug here
+        return
+    end
+    cb(isOk)
 end)

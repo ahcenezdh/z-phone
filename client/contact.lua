@@ -1,31 +1,46 @@
 RegisterNUICallback('get-contacts', function(_, cb)
-    lib.callback('z-phone:server:GetContacts', false, function(contacts)
-        cb(contacts)
-    end)
+    local contacts = lib.callback.await('z-phone:server:GetContacts', false)
+    if not contacts then
+        --TODO: debug here
+        return
+    end
+    cb(contacts)
 end)
 
 RegisterNUICallback('delete-contact', function(body, cb)
-    lib.callback('z-phone:server:DeleteContact', false, function(isOk)
-        cb(isOk)
-    end, body)
+    local deleteContact = lib.callback.await('z-phone:server:DeleteContact', false, body)
+    if not deleteContact then
+        --TODO: debug here
+        return
+    end
+    cb(deleteContact)
 end)
 
 RegisterNUICallback('update-contact', function(body, cb)
-    lib.callback('z-phone:server:UpdateContact', false, function(isOk)
-        cb(isOk)
-    end, body)
+    local updateContact = lib.callback.await('z-phone:server:UpdateContact', false, body)
+    if not updateContact then
+        --TODO: debug here
+        return
+    end
+    cb(updateContact)
 end)
 
 RegisterNUICallback('save-contact', function(body, cb)
-    lib.callback('z-phone:server:SaveContact', false, function(isOk)
-        cb(isOk)
-    end, body)
+    local saveContact = lib.callback.await('z-phone:server:SaveContact', false, body)
+    if not saveContact then
+        --TODO: debug here
+        return
+    end
+    cb(saveContact)
 end)
 
 RegisterNUICallback('get-contact-requests', function(_, cb)
-    lib.callback('z-phone:server:GetContactRequest', false, function(requests)
-        cb(requests)
-    end)
+    local contactRequests = lib.callback.await('z-phone:server:GetContactRequest', false)
+    if not contactRequests then
+        --TODO: debug here
+        return
+    end
+    cb(contactRequests)
 end)
 
 RegisterNUICallback('share-contact', function(body, cb)
@@ -42,18 +57,24 @@ RegisterNUICallback('share-contact', function(body, cb)
     end
 
     body.to_source = GetPlayerServerId(closestPlayer)
-    lib.callback('z-phone:server:ShareContact', false, function(isOk)
-        TriggerEvent("z-phone:client:sendNotifInternal", {
-            type = "Notification",
-            from = "Contact",
-            message = "Success share contact!"
-        })
-        cb(isOk)
-    end, body)
+    local shareContact = lib.callback.await('z-phone:server:ShareContact', false, body)
+    if not shareContact then
+        --TODO: debug here
+        return
+    end
+    TriggerEvent("z-phone:client:sendNotifInternal", {
+        type = "Notification",
+        from = "Contact",
+        message = "Success share contact!"
+    })
+    cb(shareContact)
 end)
 
 RegisterNUICallback('delete-contact-requests', function(body, cb)
-    lib.callback('z-phone:server:DeleteContactRequest', false, function(isOk)
-        cb(isOk)
-    end, body)
+    local deleteContactRequests = lib.callback.await('z-phone:server:DeleteContactRequest', false, body)
+    if not deleteContactRequests then
+        --TODO: debug here
+        return
+    end
+    cb(deleteContactRequests)
 end)

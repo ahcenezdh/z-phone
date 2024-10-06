@@ -17,6 +17,11 @@ PhoneData = {
     },
 }
 
+local unarmedWeapon <const> = `WEAPON_UNARMED`
+local propAmbPhone <const> = `prop_amb_phone`
+
+local DisableControlAction = DisableControlAction
+
 CreateThread(function()
     Wait(500)
     if next(Profile) == nil then
@@ -74,41 +79,40 @@ end
 
 function OpenPhone()
     local hasWeapon, weaponHash = GetCurrentPedWeapon(cache.ped, true)
-    if weaponHash ~= joaat("WEAPON_UNARMED") then
-        QBCore.Functions.Notify("Cannot open radio!", 'error')
+    if weaponHash ~= unarmedWeapon then
+        QBCore.Functions.Notify("Cannot open phone!", 'error')
         return
     end
 
-    lib.callback('z-phone:server:HasPhone', false, function(HasPhone)
-        if HasPhone then
-            PhoneData.PlayerData = QBCore.Functions.GetPlayerData()
-            SetNuiFocus(true, true)
-            -- SetNuiFocusKeepInput(true)
-            SendNUIMessage({
-                event = 'z-phone',
-                isOpen = true,
-            })
-            PhoneData.isOpen = true
+    local HasPhone = lib.callback.await('z-phone:server:HasPhone', false)
+    if not HasPhone then
+        QBCore.Functions.Notify("You don't have a phone", 'error')
+        return
+    end
 
-            CreateThread(function()
-                while PhoneData.isOpen do
-                    DisableDisplayControlActions()
-                    Wait(1)
-                end
-            end)
+    PhoneData.PlayerData = QBCore.Functions.GetPlayerData()
+    SetNuiFocus(true, true)
+    SendNUIMessage({
+        event = 'z-phone',
+        isOpen = true,
+    })
+    PhoneData.isOpen = true
 
-            if not PhoneData.CallData.InCall then
-                DoPhoneAnimation('cellphone_text_in')
-            else
-                DoPhoneAnimation('cellphone_call_to_text')
-            end
-
-            SetTimeout(250, function()
-                newPhoneProp()
-            end)
-        else
-            QBCore.Functions.Notify("You don't have a phone", 'error')
+    CreateThread(function()
+        while PhoneData.isOpen do
+            DisableDisplayControlActions()
+            Wait(1)
         end
+    end)
+
+    if not PhoneData.CallData.InCall then
+        DoPhoneAnimation('cellphone_text_in')
+    else
+        DoPhoneAnimation('cellphone_call_to_text')
+    end
+
+    SetTimeout(250, function()
+        newPhoneProp()
     end)
 end
 
@@ -143,7 +147,7 @@ RegisterNUICallback('close', function(_, cb)
     SetNuiFocusKeepInput(false)
 
     local position = GetEntityCoords(cache.ped, false)
-	local object = GetClosestObjectOfType(position.x, position.y, position.z, 5.0, joaat("prop_amb_phone"), false, false, false)
+	local object = GetClosestObjectOfType(position.x, position.y, position.z, 5.0, propAmbPhone, false, false, false)
     if object ~= 0 then
 		DeleteObject(object)
 	end

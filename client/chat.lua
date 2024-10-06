@@ -1,19 +1,28 @@
 RegisterNUICallback('new-or-continue-chat', function(body, cb)
-    lib.callback('z-phone:server:StartOrContinueChatting', false, function(chatting)
-        cb(chatting)
-    end, body)
+    local chatting = lib.callback.await('z-phone:server:StartOrContinueChatting', false, body)
+    if not chatting then
+        --TODO: debug here
+        return
+    end
+    cb(chatting)
 end)
 
 RegisterNUICallback('get-chats', function(_, cb)
-    lib.callback('z-phone:server:GetChats', false, function(chats)
-        cb(chats)
-    end)
+    local chats = lib.callback.await('z-phone:server:GetChats', false)
+    if not chats then
+        --TODO: debug here
+        return
+    end
+    cb(chats)
 end)
 
 RegisterNUICallback('get-chatting', function(body, cb)
-    lib.callback('z-phone:server:GetChatting', false, function(chatting)
-        cb(chatting)
-    end, body)
+    local chatting = lib.callback.await('z-phone:server:GetChatting', false, body)
+    if not chatting then
+        --TODO: debug here
+        return
+    end
+    cb(chatting)
 end)
 
 RegisterNUICallback('send-chatting', function(body, cb)
@@ -37,27 +46,34 @@ RegisterNUICallback('send-chatting', function(body, cb)
         return
     end
 
-    lib.callback('z-phone:server:SendChatting', false, function(isOk)
-        TriggerServerEvent("z-phone:server:usage-internet-data", Config.App.Message.Name, Config.App.InetMax.InetMaxUsage.MessageSend)
-        cb(isOk)
-    end, body)
+    local sendChatting = lib.callback.await('z-phone:server:SendChatting', false, body)
+    if not sendChatting then
+        --TODO: debug here
+        return
+    end
+    TriggerServerEvent("z-phone:server:usage-internet-data", Config.App.Message.Name, Config.App.InetMax.InetMaxUsage.MessageSend)
+    cb(sendChatting)
 end)
 
 RegisterNUICallback('delete-message', function(body, cb)
-    lib.callback('z-phone:server:DeleteMessage', false, function(isOk)
-        cb(isOk)
-    end, body)
+    local deleteMessage = lib.callback.await('z-phone:server:DeleteMessage', false, body)
+    if not deleteMessage then
+        --TODO: debug here
+        return
+    end
+    cb(deleteMessage)
 end)
 
 RegisterNUICallback('create-group', function(body, cb)
-    lib.callback('z-phone:server:CreateGroup', false, function(isOk)
-        if (isOk) then
-            TriggerEvent("z-phone:client:sendNotifInternal", {
-                type = "Notification",
-                from = "Message",
-                message = "Group chat created!"
-            })
-        end
-        cb(isOk)
-    end, body)
+    local createGroup = lib.callback.await('z-phone:server:CreateGroup', false, body)
+    if not createGroup then
+        --TODO: debug here
+        return
+    end
+    TriggerEvent("z-phone:client:sendNotifInternal", {
+        type = "Notification",
+        from = "Message",
+        message = "Group chat created!"
+    })
+    cb(createGroup)
 end)

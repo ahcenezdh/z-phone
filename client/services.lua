@@ -1,20 +1,23 @@
+local services <const> = {
+    "goverment",
+    "police",
+    "ambulance",
+    "realestate",
+    "kmmechanic",
+    "taxi",
+    "kmpedagang",
+    "reporter",
+}
+
+local logo <const> = 'https://raw.githubusercontent.com/alfaben12/kmrp-assets/main/logo/business/goverment.png'
+
 RegisterNUICallback('get-services', function(_, cb)
-    local services = {
-        "goverment",
-        "police",
-        "ambulance",
-        "realestate",
-        "kmmechanic",
-        "taxi",
-        "kmpedagang",
-        "reporter",
-    }
     local ServicesFormatted = {}
 
     for i, v in ipairs(services) do
         if QBCore.Shared.Jobs[v] ~= nil then
             ServicesFormatted[#ServicesFormatted + 1] = {
-                logo = 'https://raw.githubusercontent.com/alfaben12/kmrp-assets/main/logo/business/goverment.png',
+                logo = logo,
                 service = QBCore.Shared.Jobs[v].label,
                 job = v,
                 type = QBCore.Shared.Jobs[v].type and QBCore.Shared.Jobs[v].type or "General",
@@ -22,9 +25,13 @@ RegisterNUICallback('get-services', function(_, cb)
         end
     end
 
-    lib.callback('z-phone:server:GetServices', false, function(messages)
-        cb({ list = ServicesFormatted, reports = messages})
-    end)
+    local messages = lib.callback.await('z-phone:server:GetServices', false)
+    if not messages then
+        --TODO: more debug here
+        return
+    end
+
+    cb({ list = ServicesFormatted, reports = messages})
 end)
 
 RegisterNUICallback('send-message-service', function(body, cb)
@@ -47,15 +54,24 @@ RegisterNUICallback('send-message-service', function(body, cb)
         cb(false)
         return
     end
-    
-    lib.callback('z-phone:server:SendMessageService', false, function(isOk)
-        TriggerServerEvent("z-phone:server:usage-internet-data", Config.App.Services.Name, Config.App.InetMax.InetMaxUsage.ServicesMessage)
-        cb(isOk)
-    end, body)
+
+    local sendMessageService = lib.callback.await('z-phone:server:SendMessageService', false, body)
+    if not sendMessageService then
+        cb(false)
+        return
+    end
+
+    TriggerServerEvent("z-phone:server:usage-internet-data", Config.App.Services.Name, Config.App.InetMax.InetMaxUsage.ServicesMessage)
+    cb(sendMessageService)
 end)
 
 RegisterNUICallback('solved-message-service', function(body, cb)
-    lib.callback('z-phone:server:SolvedMessageService', false, function(isOk)
-        cb(isOk)
-    end, body)
+    local solvedMessageService = lib.callback.await('z-phone:server:SolvedMessageService', false, body)
+    if not solvedMessageService then
+        cb(false)
+        return
+        --TODO: more debug here 
+    end
+
+    cb(solvedMessageService)
 end)

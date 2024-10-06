@@ -1,7 +1,10 @@
 RegisterNUICallback('get-internet-data', function(_, cb)
-    lib.callback('z-phone:server:GetInternetData', false, function(result)
-        cb(result)
-    end)
+    local result = lib.callback.await('z-phone:server:GetInternetData', false)
+    if not result then
+        --TODO: debug here
+        return
+    end
+    cb(result)
 end)
 
 RegisterNUICallback('topup-internet-data', function(body, cb)
@@ -15,12 +18,16 @@ RegisterNUICallback('topup-internet-data', function(body, cb)
         return
     end
     
-    lib.callback('z-phone:server:TopupInternetData', false, function(purchaseInKB)
-        Profile.inetmax_balance = Profile.inetmax_balance + purchaseInKB
-        cb(purchaseInKB)
-    end, body)
+    local purchaseInKB = lib.callback.await('z-phone:server:TopupInternetData', false, body)
+    if not purchaseInKB then
+        --TODO: debug here
+        return
+    end
+    Profile.inetmax_balance = Profile.inetmax_balance + purchaseInKB
+    cb(purchaseInKB)
 end)
 
 RegisterNetEvent('z-phone:client:usage-internet-data', function(app, usageInKB)
+    --TODO: do a check here
     Profile.inetmax_balance = Profile.inetmax_balance - usageInKB
 end)
